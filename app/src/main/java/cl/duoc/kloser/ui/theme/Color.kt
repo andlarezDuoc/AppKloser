@@ -1,4 +1,4 @@
-package cl.duoc.kloser.ui.theme
+package cl.duoc.amigo.ui.theme
 
 import androidx.compose.ui.graphics.Color
 

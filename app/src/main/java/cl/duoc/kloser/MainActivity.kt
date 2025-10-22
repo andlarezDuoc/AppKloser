@@ -1,77 +1,44 @@
-package cl.duoc.kloser
+package cl.duoc.amigo
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material.Surface
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.ui.Modifier
-import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavHostController
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import cl.duoc.kloser.repository.MediaRepository
-import cl.duoc.kloser.ui.theme.KloserTheme
-import cl.duoc.kloser.ui.theme.Screens.HomeScreen
-import cl.duoc.kloser.ui.theme.Screens.LoginScreen
-import cl.duoc.kloser.viewmodel.AuthViewModel
+import androidx.room.Room
+import cl.duoc.amigo.model.AppDatabase
+import cl.duoc.amigo.repository.AmigoRepository
+import cl.duoc.amigo.ui.theme.AppNavigation
+import cl.duoc.amigo.ui.theme.AmigoTheme // Usando AmigoTheme
+import cl.duoc.amigo.viewModel.AmigoViewModel
+import cl.duoc.amigo.viewModel.FormularioViewModel
 
 
 class MainActivity : ComponentActivity() {
-// This Activity is created from an Empty Activity template.
-
+    // Asegúrate de tener FormularioViewModel disponible o crea una clase de ejemplo si no existe
+    private val viewModelForm by lazy {FormularioViewModel() }
+    private val db by lazy {
+        Room.databaseBuilder(
+            applicationContext,
+            AppDatabase::class.java,
+            "amigos_db"
+        ).build()
+    }
+    private val repository by lazy{ AmigoRepository(db.amigoDao()) }
+    private val viewModelAmigos by lazy{ AmigoViewModel(repository) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-
-// Provide repository to ViewModel manually for this skeleton. In a real project use DI.
-        val viewModelFactory = object : androidx.lifecycle.ViewModelProvider.Factory {
-            override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T {
-                @Suppress("UNCHECKED_CAST")
-                return AuthViewModel(MediaRepository()) as T
-            }
-        }
-
-
         setContent {
-            KloserTheme {
-                Surface(modifier = Modifier.fillMaxSize()) {
-                    val navController = rememberNavController()
-                    val authViewModel: AuthViewModel = viewModel(factory = viewModelFactory)
+            AmigoTheme {
+                val navController = rememberNavController()
 
-
-                    AppNavHost(navController = navController, authViewModel = authViewModel)
-                }
+                AppNavigation(
+                    navController = navController,
+                    viewModelForm = viewModelForm,
+                    viewModelAmigo = viewModelAmigos // Pasando el ViewModel de Amigos
+                )
             }
-        }
-    }
-}
-
-
-@Composable
-fun AppNavHost(navController: NavHostController, authViewModel: AuthViewModel) {
-// rememberSaveable + ViewModel used so state survives rotation.
-    val currentUser by authViewModel.user.collectAsState()
-
-
-    NavHost(navController = navController, startDestination = if (currentUser == null) "login" else "home") {
-        composable("login") {
-            LoginScreen(viewModel = authViewModel, onLoggedIn = { navController.navigate("home") {
-                popUpTo("login") { inclusive = true }
-            } })
-        }
-        composable("home") {
-            HomeScreen(viewModel = authViewModel, onLogout = {
-                authViewModel.logout()
-                navController.navigate("login") {
-                    popUpTo("home") { inclusive = true }
-                }
-            })
         }
     }
 }
