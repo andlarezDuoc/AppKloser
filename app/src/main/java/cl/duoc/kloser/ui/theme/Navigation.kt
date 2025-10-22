@@ -12,19 +12,30 @@ import cl.duoc.amigo.viewModel.FormularioViewModel
 fun AppNavigation(
     navController: NavHostController,
     viewModelForm: FormularioViewModel,
-    viewModelAmigo: AmigoViewModel // Usamos el nombre consistente: viewModelAmigo
+    viewModelAmigo: AmigoViewModel
 ) {
     NavHost(navController = navController, startDestination = "formulario") {
+
+        // 1. Ruta del formulario (la pantalla anterior)
         composable("formulario"){
             Formulario(
                 viewModel = viewModelForm,
                 onFormularioEnviado = {
+                    // Navega a la pantalla "amigos" al enviar el formulario
                     navController.navigate("amigos")
                 }
             )
         }
+
+        // 2. Ruta de la lista de amigos (la pantalla actual)
         composable("amigos"){
-            Amigos(viewModel = viewModelAmigo) // Usando la variable correcta
+            // 🚀 ¡CAMBIO CLAVE! Pasamos el navController a la función Amigos.
+            // Esto permite que el botón "ArrowBack" en Amigos.kt funcione
+            // llamando a navController.popBackStack().
+            Amigos(
+                navController = navController, // ⬅️ Nuevo parámetro
+                viewModel = viewModelAmigo
+            )
         }
     }
 }

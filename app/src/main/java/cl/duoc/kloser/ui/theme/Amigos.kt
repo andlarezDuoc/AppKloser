@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack // ⬅️ IMPORTACIÓN AGREGADA
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -22,6 +23,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
+import androidx.navigation.NavController // ⬅️ IMPORTACIÓN NECESARIA
 import coil.compose.rememberAsyncImagePainter
 import cl.duoc.amigo.model.Amigo // Paquete corregido
 import cl.duoc.amigo.viewModel.AmigoViewModel // Paquete corregido
@@ -39,7 +41,10 @@ fun File.toUri(context: android.content.Context): Uri {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun Amigos(viewModel: AmigoViewModel) {
+fun Amigos(
+    navController: NavController, // ⬅️ Parámetro NavController añadido
+    viewModel: AmigoViewModel
+) {
 
     // Se especifica el tipo (List<Amigo>) para resolver errores de inferencia
     val amigos by viewModel.amigos.collectAsState(initial = emptyList<Amigo>())
@@ -81,7 +86,19 @@ fun Amigos(viewModel: AmigoViewModel) {
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text("Lista de Amigos y Cámara") }
+                title = { Text("Lista de Amigos y Cámara") },
+                // 🚀 Lógica para el botón de regreso (volver al formulario de registro)
+                navigationIcon = {
+                    IconButton(onClick = {
+                        // Vuelve a la pantalla anterior en la pila de navegación
+                        navController.popBackStack()
+                    }) {
+                        Icon(
+                            imageVector = Icons.Filled.ArrowBack,
+                            contentDescription = "Volver al formulario de registro"
+                        )
+                    }
+                }
             )
         },
         content = { paddingValues ->
