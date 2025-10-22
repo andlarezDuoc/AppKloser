@@ -91,7 +91,7 @@ fun Amigos(
                 navigationIcon = {
                     IconButton(onClick = {
                         // Vuelve a la pantalla anterior en la pila de navegación
-                        navController.popBackStack()
+                        navController.navigateUp()
                     }) {
                         Icon(
                             imageVector = Icons.Filled.ArrowBack,

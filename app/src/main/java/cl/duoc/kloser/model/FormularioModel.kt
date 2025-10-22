@@ -8,6 +8,6 @@ import androidx.compose.runtime.setValue
 class FormularioModel {
     var nombre by mutableStateOf("")
     var correo by mutableStateOf("")
-    var edad by mutableStateOf("")
+    var contrasena by mutableStateOf("")
     var terminos by mutableStateOf(false)
 }

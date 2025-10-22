@@ -17,11 +17,12 @@ class FormularioViewModel : ViewModel() {
     fun verificarFormulario(): Boolean {
         return verificarNombre() &&
                 verificarCorreo() &&
-                verificarEdad() &&
+                verificarContrasena() && // ⬅️ CAMBIADO: verificarContrasena()
                 verificarTerminos()
     }
 
     fun verificarNombre(): Boolean {
+        // Tu lógica de verificación de nombre estaba duplicada, la simplifico
         if (!repository.validacionNombre()) {
             mensajesError.nombre = "El nombre no puede estar vacío"
             return false
@@ -29,10 +30,10 @@ class FormularioViewModel : ViewModel() {
             mensajesError.nombre = ""
             return true
         }
-        return repository.validacionNombre()
     }
 
     fun verificarCorreo(): Boolean {
+        // Tu lógica de verificación de correo estaba duplicada, la simplifico
         if(!repository.validacionCorreo()) {
             mensajesError.correo = "El correo no es válido"
             return false
@@ -40,21 +41,23 @@ class FormularioViewModel : ViewModel() {
             mensajesError.correo = ""
             return true
         }
-        return repository.validacionCorreo()
     }
 
-    fun verificarEdad(): Boolean {
-        if(!repository.validacionEdad()) {
-            mensajesError.edad = "La edad debe ser un número entre 0 y 120"
+    // 🚀 NUEVA FUNCIÓN: verificarContrasena() (reemplaza a verificarEdad())
+    fun verificarContrasena(): Boolean {
+        // ASUMO que tienes un método validacionContrasena() en tu repositorio
+        if(!repository.validacionContrasena()) {
+            // Puedes ajustar este mensaje de error según tus reglas de contraseña (largo mínimo, etc.)
+            mensajesError.contrasena = "La contraseña debe tener al menos 6 caracteres"
             return false
         } else {
-            mensajesError.edad = ""
+            mensajesError.contrasena = ""
             return true
         }
-        return repository.validacionEdad()
     }
 
     fun verificarTerminos(): Boolean {
+        // Tu lógica de verificación de términos estaba duplicada, la simplifico
         if(!repository.validacionTerminos()) {
             mensajesError.terminos = "Debes aceptar los términos"
             return false
@@ -62,9 +65,5 @@ class FormularioViewModel : ViewModel() {
             mensajesError.terminos = ""
             return true
         }
-        return repository.validacionTerminos()
     }
-
-
-
 }

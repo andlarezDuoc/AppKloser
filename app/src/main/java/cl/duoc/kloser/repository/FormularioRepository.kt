@@ -31,13 +31,17 @@ class  FormularioRepository {
             return true
     }
 
-    fun validacionEdad(): Boolean {
-        val edadInt = formulario.edad.toIntOrNull()
-        if (edadInt == null || edadInt < 0 || edadInt > 120)
+    fun validacionContrasena(): Boolean {
+
+        val contrasena = formulario.contrasena
+        val minLength = 6
+
+        if (contrasena.isBlank() || contrasena.length < minLength) {
             return false
-        else
+        } else {
             return true
-    }
+        } // ⬅️ ¡ESTA LLAVE FALTABA!
+    } // ⬅️ Esta llave ahora cierra la función validacionContrasena correctamente.
 
     fun validacionTerminos(): Boolean {
         if (!formulario.terminos)
@@ -45,6 +49,4 @@ class  FormularioRepository {
         else
             return true
     }
-
-
 }

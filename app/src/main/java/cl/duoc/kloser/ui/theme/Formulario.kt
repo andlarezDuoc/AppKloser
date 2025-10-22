@@ -11,6 +11,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation // ⬅️ IMPORTACIÓN CLAVE
 import androidx.compose.ui.unit.dp
 import cl.duoc.amigo.viewModel.FormularioViewModel
 import cl.duoc.amigo.R
@@ -18,7 +19,11 @@ import cl.duoc.amigo.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun Formulario(viewModel: FormularioViewModel, onFormularioEnviado: () -> Unit) {
+fun Formulario(
+    viewModel: FormularioViewModel,
+    onFormularioEnviado: () -> Unit,
+    onLoginClick: () -> Unit
+) {
 
     var abrirModal by remember { mutableStateOf(false) }
 
@@ -98,18 +103,25 @@ fun Formulario(viewModel: FormularioViewModel, onFormularioEnviado: () -> Unit) 
 
                 Spacer(modifier = Modifier.height(12.dp))
 
+                // 🚀 CAMBIO DE EDAD A CONTRASEÑA
                 OutlinedTextField(
-                    value = viewModel.formulario.edad,
+                    // ASUMIMOS que el ViewModel ahora tiene 'contrasena'
+                    value = viewModel.formulario.contrasena,
                     onValueChange = {
-                        viewModel.formulario.edad = it
-                        viewModel.verificarEdad()
+                        viewModel.formulario.contrasena = it
+                        viewModel.verificarContrasena() // ASUMIMOS el nuevo método de verificación
                     },
-                    label = { Text("Edad") },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    isError = !viewModel.verificarEdad(),
+                    label = { Text("Contraseña") }, // ⬅️ Nueva Etiqueta
+                    // Oculta la entrada con puntos
+                    visualTransformation = PasswordVisualTransformation(),
+                    // Cambia el teclado a tipo contraseña
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                    // ASUMIMOS el nuevo método de verificación
+                    isError = !viewModel.verificarContrasena(),
                     supportingText = {
-                        if (viewModel.mensajesError.edad.isNotEmpty()) {
-                            Text(viewModel.mensajesError.edad, color = Color.Red)
+                        // ASUMIMOS que el error se llama 'contrasena'
+                        if (viewModel.mensajesError.contrasena.isNotEmpty()) {
+                            Text(viewModel.mensajesError.contrasena, color = Color.Red)
                         }
                     },
                     modifier = Modifier.fillMaxWidth()
@@ -147,8 +159,18 @@ fun Formulario(viewModel: FormularioViewModel, onFormularioEnviado: () -> Unit) 
                     },
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text("Iniciar Sesion")
+                    Text("Registrarse")
                 }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                TextButton(
+                    onClick = onLoginClick,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("¿Ya tienes cuenta? Iniciar Sesión")
+                }
+
                 if (abrirModal) {
                     AlertDialog(
                         onDismissRequest = { abrirModal = false },
