@@ -1,8 +1,6 @@
 package cl.duoc.amigo.model
 
 import androidx.room.*
-import kotlinx.coroutines.flow.Flow
-
 @Dao
 interface AmigoDao {
     @Query("SELECT * FROM amigos")

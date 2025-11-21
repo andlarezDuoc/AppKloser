@@ -1,52 +1,22 @@
 package cl.duoc.amigo.repository
 
-import cl.duoc.amigo.model.FormularioModel
-import cl.duoc.amigo.model.MensajesError
+class FormularioRepository {
 
-
-class  FormularioRepository {
-
-    private var formulario = FormularioModel()
-    private var errores = MensajesError()
-
-    fun getFormulario():  FormularioModel = formulario
-    fun getMensajesError():  MensajesError = errores
-
-
-    fun cambiarNombre(nuevoNombre: String) {
-        formulario.nombre = nuevoNombre
+    fun validacionNombre(nombre: String): Boolean {
+        return nombre.isNotBlank()
+    }
+    fun validacionCorreo(correo: String): Boolean {
+        val emailRegex = Regex("^[\\w.-]+@[\\w.-]+\\.\\w+$")
+        return correo.matches(emailRegex)
     }
 
-    fun validacionNombre(): Boolean {
-        if(formulario.nombre=="")
-            return false
-        else
-            return true
-    }
-
-    fun validacionCorreo(): Boolean {
-        if (!formulario.correo.matches(Regex("^[\\w.-]+@[\\w.-]+\\.\\w+$")))
-            return false
-        else
-            return true
-    }
-
-    fun validacionContrasena(): Boolean {
-
-        val contrasena = formulario.contrasena
+    fun validacionContrasena(contrasena: String): Boolean {
         val minLength = 6
+        return contrasena.isNotBlank() && contrasena.length >= minLength
+    }
 
-        if (contrasena.isBlank() || contrasena.length < minLength) {
-            return false
-        } else {
-            return true
-        } // ⬅️ ¡ESTA LLAVE FALTABA!
-    } // ⬅️ Esta llave ahora cierra la función validacionContrasena correctamente.
+    fun validacionTerminos(terminos: Boolean): Boolean {
 
-    fun validacionTerminos(): Boolean {
-        if (!formulario.terminos)
-            return false
-        else
-            return true
+        return terminos
     }
 }

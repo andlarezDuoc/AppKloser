@@ -11,8 +11,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack // ⬅️ IMPORTACIÓN AGREGADA
 import androidx.compose.material.icons.filled.CameraAlt
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -23,14 +23,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
-import androidx.navigation.NavController // ⬅️ IMPORTACIÓN NECESARIA
+import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
-import cl.duoc.amigo.model.Amigo // Paquete corregido
-import cl.duoc.amigo.viewModel.AmigoViewModel // Paquete corregido
+import cl.duoc.amigo.model.Amigo
+import cl.duoc.amigo.viewModel.AmigoViewModel
 import java.io.File
 
-
-// Extensión para obtener una URI temporal de manera segura usando FileProvider
 fun File.toUri(context: android.content.Context): Uri {
     return FileProvider.getUriForFile(
         context,
@@ -42,28 +40,23 @@ fun File.toUri(context: android.content.Context): Uri {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Amigos(
-    navController: NavController, // ⬅️ Parámetro NavController añadido
-    viewModel: AmigoViewModel
+    navController: NavController,
+    viewModel: AmigoViewModel,
+    onLogout: () -> Unit
 ) {
 
-    // Se especifica el tipo (List<Amigo>) para resolver errores de inferencia
     val amigos by viewModel.amigos.collectAsState(initial = emptyList<Amigo>())
-
-    // Se inicializan con tipo String para resolver errores de inferencia
     var nombre by remember { mutableStateOf("")}
     var id by remember { mutableStateOf("")}
     var mostrarDialogo by remember {mutableStateOf(false) }
-
-    // 📸 Lógica de la Cámara
+    var mostrarDialogoEliminar by remember { mutableStateOf(false) }
+    var amigoSeleccionado by remember { mutableStateOf<Amigo?>(null) } // Almacena el amigo a eliminar
     var imagenUri by remember { mutableStateOf<Uri?>(null) }
     val context = LocalContext.current
-
-    // Archivo temporal para guardar la foto
     val cameraFile = remember {
         File(context.externalCacheDir, "temp_image_amigo.jpg")
     }
 
-    // Launcher para abrir la cámara
     val cameraLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.TakePicture()
     ) { success ->
@@ -72,14 +65,13 @@ fun Amigos(
         }
     }
 
-    // Launcher para solicitar el permiso
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
     ) { isGranted ->
         if (isGranted) {
             cameraLauncher.launch(cameraFile.toUri(context))
         } else {
-            // Manejar permiso denegado
+
         }
     }
 
@@ -87,15 +79,14 @@ fun Amigos(
         topBar = {
             CenterAlignedTopAppBar(
                 title = { Text("Lista de Amigos y Cámara") },
-                // 🚀 Lógica para el botón de regreso (volver al formulario de registro)
                 navigationIcon = {
-                    IconButton(onClick = {
-                        // Vuelve a la pantalla anterior en la pila de navegación
-                        navController.navigateUp()
-                    }) {
-                        Icon(
-                            imageVector = Icons.Filled.ArrowBack,
-                            contentDescription = "Volver al formulario de registro"
+                    TextButton(
+                        onClick = onLogout,
+                        modifier = Modifier.padding(start = 8.dp)
+                    ) {
+                        Text(
+                            text = "Cerrar Sesión",
+                            color = Color.Red
                         )
                     }
                 }
@@ -105,17 +96,18 @@ fun Amigos(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(Color(0xFFF8F9FA))
+                    .background(Color.Black)
                     .padding(paddingValues)
                     .padding(20.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
 
-                // 1. SECCIÓN DE CÁMARA
+                // SECCIÓN DE CÁMARA
                 Text(
                     text = "Acceso a la Cámara",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
+                    color = Color.White,
                     modifier = Modifier.padding(bottom = 8.dp)
                 )
 
@@ -154,12 +146,13 @@ fun Amigos(
 
                 Spacer(modifier = Modifier.height(32.dp))
 
-                // 2. SECCIÓN DE AGREGAR AMIGO
+                // SECCIÓN DE AGREGAR AMIGO
 
                 Text(
                     text = "Agregar Nuevo Amigo",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
+                    color = Color.White,
                     modifier = Modifier.padding(bottom = 8.dp)
                 )
 
@@ -182,7 +175,7 @@ fun Amigos(
                 Button(
                     onClick = {
                         if (nombre.isNotBlank() && id.isNotBlank()) {
-                            // Llamar a la función del ViewModel con los parámetros
+
                             viewModel.agregarAmigos(
                                 nombre = nombre,
                                 idAmigo = id
@@ -201,10 +194,11 @@ fun Amigos(
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                // 3. LISTA DE AMIGOS
+                // LISTA DE AMIGOS
                 Text(
                     text = "Amigos Agregados",
                     style = MaterialTheme.typography.titleSmall,
+                    color = Color.White,
                     modifier = Modifier.padding(bottom = 8.dp)
                 )
 
@@ -218,25 +212,51 @@ fun Amigos(
                         items(amigos){ amigo ->
                             Card(
                                 modifier = Modifier.fillMaxWidth(),
-                                colors = CardDefaults.cardColors(containerColor = Color.White),
+                                colors = CardDefaults.cardColors(containerColor = Color.DarkGray),
                                 elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
                             ) {
-                                Column(
-                                    modifier = Modifier.padding(16.dp)
+                                Row( // Usamos Row para alinear el texto y el botón de eliminar
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(start = 16.dp, top = 8.dp, bottom = 8.dp, end = 4.dp),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    Text(
-                                        text = amigo.nombre,
-                                        style = MaterialTheme.typography.titleMedium,
-                                        fontWeight = FontWeight.Bold
-                                    )
-                                    Text("ID: ${amigo.autor}")
+                                    Column(
+                                        modifier = Modifier.weight(1f) // Ocupa el espacio restante
+                                    ) {
+                                        Text(
+                                            text = amigo.nombre,
+                                            style = MaterialTheme.typography.titleMedium,
+                                            fontWeight = FontWeight.Bold,
+                                            color = Color.White
+                                        )
+                                        Text(
+                                            text = "ID: ${amigo.autor}",
+                                            color = Color.LightGray
+                                        )
+                                    }
+
+                                    // Botón de Eliminar
+                                    IconButton(
+                                        onClick = {
+                                            amigoSeleccionado = amigo
+                                            mostrarDialogoEliminar = true
+                                        }
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Filled.Delete,
+                                            contentDescription = "Eliminar Amigo",
+                                            tint = Color.Red
+                                        )
+                                    }
                                 }
                             }
                         }
                     }
                 }
 
-                // DIÁLOGO DE CONFIRMACIÓN
+                // CONFIRMACIÓN DE AGREGAR AMIGO (sin cambios)
                 if (mostrarDialogo) {
                     AlertDialog(
                         onDismissRequest = { mostrarDialogo = false },
@@ -245,6 +265,42 @@ fun Amigos(
                         confirmButton = {
                             Button(onClick = { mostrarDialogo = false }) {
                                 Text("Aceptar")
+                            }
+                        }
+                    )
+                }
+
+                if (mostrarDialogoEliminar && amigoSeleccionado != null) {
+                    AlertDialog(
+                        onDismissRequest = {
+                            mostrarDialogoEliminar = false
+                            amigoSeleccionado = null
+                        },
+                        title = { Text("Confirmar Eliminación") },
+                        text = {
+                            Text("¿Estás seguro de que quieres eliminar a ${amigoSeleccionado!!.nombre} de tu lista de amigos?")
+                        },
+                        confirmButton = {
+                            Button(
+                                onClick = {
+                                    viewModel.eliminarAmigo(amigoSeleccionado!!)
+                                    mostrarDialogoEliminar = false
+                                    amigoSeleccionado = null
+                                },
+                                colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
+                            ) {
+                                Text("Eliminar")
+                            }
+                        },
+                        dismissButton = {
+                            OutlinedButton(
+                                onClick = {
+                                    // 4. Cancelar y cerrar el diálogo
+                                    mostrarDialogoEliminar = false
+                                    amigoSeleccionado = null
+                                }
+                            ) {
+                                Text("Cancelar")
                             }
                         }
                     )

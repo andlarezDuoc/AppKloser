@@ -33,8 +33,6 @@ class AmigoViewModel(private val repository: AmigoRepository) : ViewModel() {
             cargarAmigos()
         }
     }
-
-    // Puedes dejar otras funciones (update, delete) si las tienes, usando 'amigo'
     fun eliminarAmigo(amigo: Amigo) {
         viewModelScope.launch {
             repository.delete(amigo)

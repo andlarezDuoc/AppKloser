@@ -7,6 +7,6 @@ import androidx.room.PrimaryKey
 data class Amigo(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
     val nombre: String,
-    val autor: String, // Usado para el ID del amigo a agregar
+    val autor: String,
     val genero: String
 )

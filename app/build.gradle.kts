@@ -44,21 +44,17 @@ android {
 
 dependencies {
 
-    // --- Dependencias para Cámara, Navegación y Room (Limpias y sin duplicados) ---
     implementation("androidx.activity:activity-compose:1.8.2")
     implementation("io.coil-kt:coil-compose:2.5.0")
     implementation("androidx.compose.material:material-icons-extended:1.6.0")
 
-    // Room Database
+
     implementation("androidx.room:room-runtime:2.6.1")
     implementation("androidx.room:room-ktx:2.6.1")
     kapt("androidx.room:room-compiler:2.6.1")
 
-    // Navegación (Compose)
     implementation("androidx.navigation:navigation-compose:2.8.0")
 
-
-    // --- Dependencias manejadas por libs.versions.toml (o las que ya tenías) ---
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)

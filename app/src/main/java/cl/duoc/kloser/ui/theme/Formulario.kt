@@ -36,7 +36,7 @@ fun Formulario(
                     .padding(top = 16.dp)
             ) {
                 Image(
-                    painter = painterResource(id = R.drawable.logo),
+                    painter = painterResource(id = R.drawable.kloser_logo),
                     contentDescription = "Logo Kloser",
                     modifier = Modifier
                         .size(300.dp)
@@ -103,23 +103,17 @@ fun Formulario(
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                // 🚀 CAMBIO DE EDAD A CONTRASEÑA
                 OutlinedTextField(
-                    // ASUMIMOS que el ViewModel ahora tiene 'contrasena'
                     value = viewModel.formulario.contrasena,
                     onValueChange = {
                         viewModel.formulario.contrasena = it
                         viewModel.verificarContrasena() // ASUMIMOS el nuevo método de verificación
                     },
                     label = { Text("Contraseña") }, // ⬅️ Nueva Etiqueta
-                    // Oculta la entrada con puntos
                     visualTransformation = PasswordVisualTransformation(),
-                    // Cambia el teclado a tipo contraseña
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                    // ASUMIMOS el nuevo método de verificación
                     isError = !viewModel.verificarContrasena(),
                     supportingText = {
-                        // ASUMIMOS que el error se llama 'contrasena'
                         if (viewModel.mensajesError.contrasena.isNotEmpty()) {
                             Text(viewModel.mensajesError.contrasena, color = Color.Red)
                         }

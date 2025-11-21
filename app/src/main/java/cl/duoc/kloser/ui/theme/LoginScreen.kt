@@ -3,7 +3,6 @@ package cl.duoc.amigo.ui.theme
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -14,33 +13,34 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import cl.duoc.amigo.R
-
+import cl.duoc.amigo.viewModel.FormularioViewModel
+import kotlinx.coroutines.launch
+import androidx.compose.foundation.background
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoginScreen(
     navController: NavController,
-    onLoginSuccess: () -> Unit, // Acción a ejecutar si el login es exitoso (ej: ir a Amigos)
-    onRegisterClick: () -> Unit // Acción para volver a la pantalla de Registro
+    viewModel: FormularioViewModel,
+    onLoginSuccess: () -> Unit,
+    onRegisterClick: () -> Unit
 ) {
-    // ⚠️ NOTA: En una aplicación real, usarías un ViewModel para manejar el estado
-    // y la lógica de validación, similar a como lo hiciste en Formulario.
-    var nombre by remember { mutableStateOf("") }
+    var correo by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
-    val isLoginEnabled = nombre.isNotBlank() && password.length >= 4 // Validación simple
+    val isLoginEnabled = correo.isNotBlank() && password.length >= 4
 
-    // Simulación de un error de credenciales
     var showError by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
 
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
                 title = { Text("Iniciar Sesión") },
-                // Botón de regreso, te lleva de vuelta a la pantalla anterior (Registro)
                 navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
+                    IconButton(onClick = onRegisterClick) {
                         Icon(
-                            imageVector = Icons.Filled.ArrowBack,
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack, // ⬅️ ÍCONO CORREGIDO
                             contentDescription = "Volver al registro"
                         )
                     }
@@ -51,6 +51,7 @@ fun LoginScreen(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
+                    .background(Color.Black)
                     .padding(paddingValues)
                     .padding(20.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
@@ -58,9 +59,9 @@ fun LoginScreen(
 
                 Spacer(modifier = Modifier.height(32.dp))
 
-                // Logo Kloser
+                // Logo
                 Image(
-                    painter = painterResource(id = R.drawable.logo),
+                    painter = painterResource(id = R.drawable.kloser_logo),
                     contentDescription = "Logo Kloser",
                     modifier = Modifier.size(200.dp).padding(bottom = 16.dp)
                 )
@@ -68,34 +69,41 @@ fun LoginScreen(
                 Text(
                     text = "ACCEDE A TU CUENTA",
                     style = MaterialTheme.typography.headlineSmall,
+                    color = Color.White,
                     modifier = Modifier.padding(bottom = 32.dp)
                 )
 
-                // Campo Nombre
+                // Correo Electrónico
                 OutlinedTextField(
-                    value = nombre,
-                    onValueChange = { nombre = it },
-                    label = { Text("Nombre de usuario") },
+                    value = correo,
+                    onValueChange = {
+                        correo = it
+                        showError = false
+                    },
+                    label = { Text("Correo Electrónico") }, // ⬅️ CAMBIADO A CORREO
                     modifier = Modifier.fillMaxWidth()
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Campo Contraseña
+                //Contraseña
                 OutlinedTextField(
                     value = password,
-                    onValueChange = { password = it },
+                    onValueChange = {
+                        password = it
+                        showError = false
+                    },
                     label = { Text("Contraseña") },
-                    visualTransformation = PasswordVisualTransformation(), // Oculta la contraseña
+                    visualTransformation = PasswordVisualTransformation(),
                     modifier = Modifier.fillMaxWidth()
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                // Mensaje de Error (si se intenta iniciar sesión con credenciales incorrectas)
+                // Mensaje de Error
                 if (showError) {
                     Text(
-                        text = "Credenciales incorrectas. Intenta de nuevo.",
+                        text = "Credenciales o correo incorrectos.",
                         color = Color.Red,
                         modifier = Modifier.align(Alignment.Start)
                     )
@@ -103,15 +111,18 @@ fun LoginScreen(
 
                 Spacer(modifier = Modifier.height(32.dp))
 
-                // Botón principal de INICIAR SESIÓN
                 Button(
-                    // La propiedad 'enabled' ya verifica si los campos no están vacíos
                     enabled = isLoginEnabled,
                     onClick = {
-                        // 🚀 MODIFICACIÓN CLAVE: Si el botón está habilitado (campos llenos),
-                        // asumimos que el inicio de sesión es exitoso.
-                        showError = false // Asegúrate de ocultar cualquier error previo
-                        onLoginSuccess()
+                        showError = false
+                        scope.launch {
+                            val success = viewModel.iniciarSesion(correo, password)
+                            if (success) {
+                                onLoginSuccess()
+                            } else {
+                                showError = true
+                            }
+                        }
                     },
                     modifier = Modifier.fillMaxWidth()
                 ) {
@@ -120,7 +131,6 @@ fun LoginScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Botón secundario para volver a REGISTRARSE
                 TextButton(
                     onClick = onRegisterClick,
                     modifier = Modifier.fillMaxWidth()
