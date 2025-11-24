@@ -2,7 +2,8 @@ package cl.duoc.amigo.ui.theme
 
 import android.Manifest
 import android.content.pm.PackageManager
-import android.net.Uri
+import android.os.Environment
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
@@ -18,76 +19,72 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
-import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 import cl.duoc.amigo.model.Amigo
 import cl.duoc.amigo.viewModel.AmigoViewModel
 import java.io.File
 
-fun File.toUri(context: android.content.Context): Uri {
-    return FileProvider.getUriForFile(
-        context,
-        "${context.packageName}.provider",
-        this
-    )
-}
+fun File.toUri(context: android.content.Context) = FileProvider.getUriForFile(
+    context,
+    "${context.packageName}.provider",
+    this
+)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Amigos(
-    navController: NavController,
     viewModel: AmigoViewModel,
     onLogout: () -> Unit
 ) {
-
-    val amigos by viewModel.amigos.collectAsState(initial = emptyList<Amigo>())
-    var nombre by remember { mutableStateOf("")}
-    var id by remember { mutableStateOf("")}
-    var mostrarDialogo by remember {mutableStateOf(false) }
-    var mostrarDialogoEliminar by remember { mutableStateOf(false) }
-    var amigoSeleccionado by remember { mutableStateOf<Amigo?>(null) } // Almacena el amigo a eliminar
-    var imagenUri by remember { mutableStateOf<Uri?>(null) }
     val context = LocalContext.current
+    val amigos by viewModel.amigos.collectAsState(initial = emptyList())
+
+    var nombre by remember { mutableStateOf("") }
+    var id by remember { mutableStateOf("") }
+    var mostrarDialogo by remember { mutableStateOf(false) }
+    var mostrarDialogoEliminar by remember { mutableStateOf(false) }
+    var amigoSeleccionado by remember { mutableStateOf<Amigo?>(null) }
+    var imagenUri by remember { mutableStateOf<android.net.Uri?>(null) }
+
+    // Archivo temporal para la foto
     val cameraFile = remember {
-        File(context.externalCacheDir, "temp_image_amigo.jpg")
+        File(context.getExternalFilesDir(Environment.DIRECTORY_PICTURES), "temp_photo.jpg")
     }
 
+    // Launcher para tomar foto
     val cameraLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.TakePicture()
     ) { success ->
         if (success) {
             imagenUri = cameraFile.toUri(context)
+        } else {
+            Toast.makeText(context, "No se tomó la foto", Toast.LENGTH_SHORT).show()
         }
     }
 
+    // Launcher para pedir permiso
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
-    ) { isGranted ->
-        if (isGranted) {
+    ) { granted ->
+        if (granted) {
             cameraLauncher.launch(cameraFile.toUri(context))
         } else {
-
+            Toast.makeText(context, "Permiso de cámara denegado", Toast.LENGTH_SHORT).show()
         }
     }
 
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text("Lista de Amigos y Cámara") },
+                title = { Text("Lista de Amigos") },
                 navigationIcon = {
-                    TextButton(
-                        onClick = onLogout,
-                        modifier = Modifier.padding(start = 8.dp)
-                    ) {
-                        Text(
-                            text = "Cerrar Sesión",
-                            color = Color.Red
-                        )
+                    TextButton(onClick = onLogout, modifier = Modifier.padding(start = 8.dp)) {
+                        Text("Cerrar Sesión", color = Color.Red)
                     }
                 }
             )
@@ -102,18 +99,29 @@ fun Amigos(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
 
-                // SECCIÓN DE CÁMARA
-                Text(
-                    text = "Acceso a la Cámara",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White,
-                    modifier = Modifier.padding(bottom = 8.dp)
-                )
+                // Botón de cámara
+                Button(
+                    onClick = {
+                        when (PackageManager.PERMISSION_GRANTED) {
+                            ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) -> {
+                                cameraLauncher.launch(cameraFile.toUri(context))
+                            }
+                            else -> permissionLauncher.launch(Manifest.permission.CAMERA)
+                        }
+                    },
+                    modifier = Modifier
+                        .size(150.dp)
+                        .padding(bottom = 16.dp)
+                ) {
+                    Icon(
+                        Icons.Filled.CameraAlt,
+                        contentDescription = "Abrir cámara",
+                        modifier = Modifier.size(64.dp)
+                    )
+                }
 
-                // Vista previa de la foto capturada
+                // Vista previa de la foto
                 imagenUri?.let { uri ->
-                    Spacer(modifier = Modifier.height(8.dp))
                     Image(
                         painter = rememberAsyncImagePainter(uri),
                         contentDescription = "Foto capturada",
@@ -124,44 +132,16 @@ fun Amigos(
                     )
                 }
 
-                // Botón para Abrir la Cámara
-                Button(
-                    onClick = {
-                        // Comprobar y solicitar permiso
-                        when (PackageManager.PERMISSION_GRANTED) {
-                            ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) -> {
-                                cameraLauncher.launch(cameraFile.toUri(context))
-                            }
-                            else -> {
-                                permissionLauncher.launch(Manifest.permission.CAMERA)
-                            }
-                        }
-                    },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Icon(Icons.Filled.CameraAlt, contentDescription = "Cámara")
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text("Tomar Foto")
-                }
+                Spacer(modifier = Modifier.height(16.dp))
 
-                Spacer(modifier = Modifier.height(32.dp))
-
-                // SECCIÓN DE AGREGAR AMIGO
-
-                Text(
-                    text = "Agregar Nuevo Amigo",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White,
-                    modifier = Modifier.padding(bottom = 8.dp)
-                )
-
+                // agregar nuevo amigo
                 OutlinedTextField(
                     value = nombre,
                     onValueChange = { nombre = it },
                     label = { Text("Nombre de tu amigo") },
                     modifier = Modifier.fillMaxWidth()
                 )
+
                 Spacer(modifier = Modifier.height(8.dp))
 
                 OutlinedTextField(
@@ -170,17 +150,13 @@ fun Amigos(
                     label = { Text("ID de tu amigo") },
                     modifier = Modifier.fillMaxWidth()
                 )
+
                 Spacer(modifier = Modifier.height(8.dp))
 
                 Button(
                     onClick = {
                         if (nombre.isNotBlank() && id.isNotBlank()) {
-
-                            viewModel.agregarAmigos(
-                                nombre = nombre,
-                                idAmigo = id
-                            )
-                            // Limpiar campos
+                            viewModel.agregarAmigos(nombre, id)
                             nombre = ""
                             id = ""
                             mostrarDialogo = true
@@ -191,10 +167,9 @@ fun Amigos(
                     Text("Agregar Amigo a la Lista")
                 }
 
+                Spacer(modifier = Modifier.height(16.dp))
 
-                Spacer(modifier = Modifier.height(24.dp))
-
-                // LISTA DE AMIGOS
+                // Lista de amigos
                 Text(
                     text = "Amigos Agregados",
                     style = MaterialTheme.typography.titleSmall,
@@ -203,28 +178,26 @@ fun Amigos(
                 )
 
                 if (amigos.isEmpty()) {
-                    Text("No hay amigos registradas aún.", color = Color.Gray)
+                    Text("No hay amigos registrados aún.", color = Color.Gray)
                 } else {
                     LazyColumn(
                         modifier = Modifier.fillMaxWidth().weight(1f),
                         verticalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
-                        items(amigos){ amigo ->
+                        items(amigos) { amigo ->
                             Card(
                                 modifier = Modifier.fillMaxWidth(),
                                 colors = CardDefaults.cardColors(containerColor = Color.DarkGray),
                                 elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
                             ) {
-                                Row( // Usamos Row para alinear el texto y el botón de eliminar
+                                Row(
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .padding(start = 16.dp, top = 8.dp, bottom = 8.dp, end = 4.dp),
+                                        .padding(16.dp),
                                     horizontalArrangement = Arrangement.SpaceBetween,
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    Column(
-                                        modifier = Modifier.weight(1f) // Ocupa el espacio restante
-                                    ) {
+                                    Column(modifier = Modifier.weight(1f)) {
                                         Text(
                                             text = amigo.nombre,
                                             style = MaterialTheme.typography.titleMedium,
@@ -237,18 +210,11 @@ fun Amigos(
                                         )
                                     }
 
-                                    // Botón de Eliminar
-                                    IconButton(
-                                        onClick = {
-                                            amigoSeleccionado = amigo
-                                            mostrarDialogoEliminar = true
-                                        }
-                                    ) {
-                                        Icon(
-                                            imageVector = Icons.Filled.Delete,
-                                            contentDescription = "Eliminar Amigo",
-                                            tint = Color.Red
-                                        )
+                                    IconButton(onClick = {
+                                        amigoSeleccionado = amigo
+                                        mostrarDialogoEliminar = true
+                                    }) {
+                                        Icon(Icons.Filled.Delete, contentDescription = "Eliminar Amigo", tint = Color.Red)
                                     }
                                 }
                             }
@@ -256,20 +222,19 @@ fun Amigos(
                     }
                 }
 
-                // CONFIRMACIÓN DE AGREGAR AMIGO (sin cambios)
+                // Diálogo de amigo agregado
                 if (mostrarDialogo) {
                     AlertDialog(
                         onDismissRequest = { mostrarDialogo = false },
                         title = { Text("✅ Amigo agregado") },
                         text = { Text("Amigo guardado correctamente en la lista.") },
                         confirmButton = {
-                            Button(onClick = { mostrarDialogo = false }) {
-                                Text("Aceptar")
-                            }
+                            Button(onClick = { mostrarDialogo = false }) { Text("Aceptar") }
                         }
                     )
                 }
 
+                // Diálogo de eliminar amigo
                 if (mostrarDialogoEliminar && amigoSeleccionado != null) {
                     AlertDialog(
                         onDismissRequest = {
@@ -277,9 +242,7 @@ fun Amigos(
                             amigoSeleccionado = null
                         },
                         title = { Text("Confirmar Eliminación") },
-                        text = {
-                            Text("¿Estás seguro de que quieres eliminar a ${amigoSeleccionado!!.nombre} de tu lista de amigos?")
-                        },
+                        text = { Text("¿Estás seguro de eliminar a ${amigoSeleccionado!!.nombre}?") },
                         confirmButton = {
                             Button(
                                 onClick = {
@@ -288,20 +251,15 @@ fun Amigos(
                                     amigoSeleccionado = null
                                 },
                                 colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
-                            ) {
-                                Text("Eliminar")
-                            }
+                            ) { Text("Eliminar") }
                         },
                         dismissButton = {
                             OutlinedButton(
                                 onClick = {
-                                    // 4. Cancelar y cerrar el diálogo
                                     mostrarDialogoEliminar = false
                                     amigoSeleccionado = null
                                 }
-                            ) {
-                                Text("Cancelar")
-                            }
+                            ) { Text("Cancelar") }
                         }
                     )
                 }

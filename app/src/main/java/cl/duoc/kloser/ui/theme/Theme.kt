@@ -28,9 +28,9 @@ private val LightColorScheme = lightColorScheme(
 
 @Composable
 fun AmigoTheme(
-    darkTheme: Boolean = true, // Anteriormente era isSystemInDarkTheme()
+    darkTheme: Boolean = true,
 
-    dynamicColor: Boolean = true, // Mantener si te gusta el efecto Material 3 en Android 12+
+    dynamicColor: Boolean = true,
     content: @Composable () -> Unit
 ) {
     val colorScheme = when {

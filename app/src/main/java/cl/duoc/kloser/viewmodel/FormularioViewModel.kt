@@ -1,50 +1,47 @@
 package cl.duoc.amigo.viewModel
 
 import android.content.Context
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import cl.duoc.amigo.repository.AuthRepository
-import cl.duoc.amigo.repository.FormularioRepository
+import cl.duoc.amigo.model.AppDatabase
 import cl.duoc.amigo.model.FormularioModel
 import cl.duoc.amigo.model.MensajesError
-import cl.duoc.amigo.model.AppDatabase
+import cl.duoc.amigo.repository.AuthRepository
+import cl.duoc.amigo.repository.FormularioRepository
 import kotlinx.coroutines.launch
 
-class FormularioViewModel(context: Context) : ViewModel() {
+class FormularioViewModel(private val context: Context) : ViewModel() {
 
     private val formularioRepository = FormularioRepository()
+    private var authRepository: AuthRepository? = null
 
-    private lateinit var authRepository: AuthRepository
-
-    init {
-        val authDao = AppDatabase.getDatabase(context).authDao()
-        authRepository = AuthRepository(authDao)
-    }
-
-    // Estados
-    var formulario: FormularioModel by mutableStateOf( FormularioModel() )
-    var mensajesError: MensajesError by mutableStateOf( MensajesError() )
+    var formulario: FormularioModel by mutableStateOf(FormularioModel())
+    var mensajesError: MensajesError by mutableStateOf(MensajesError())
     var registroExitoso by mutableStateOf(false)
 
+    fun initDatabase() {
+        viewModelScope.launch {
+            try {
+                val authDao = AppDatabase.getDatabase(context).authDao()
+                authRepository = AuthRepository(authDao)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
 
     fun registrarUsuario() {
-        if (!verificarFormulario()) {
-            return
-        }
+        if (!verificarFormulario()) return
 
         viewModelScope.launch {
-            registroExitoso = authRepository.registerUser(formulario)
+            registroExitoso = authRepository?.registerUser(formulario) ?: false
         }
     }
 
-
     suspend fun iniciarSesion(correo: String, contrasena: String): Boolean {
-        return authRepository.loginUser(correo, contrasena)
+        return authRepository?.loginUser(correo, contrasena) ?: false
     }
-
     fun verificarFormulario(): Boolean {
         verificarNombre()
         verificarCorreo()

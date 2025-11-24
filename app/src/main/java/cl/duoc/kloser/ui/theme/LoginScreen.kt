@@ -1,7 +1,9 @@
 package cl.duoc.amigo.ui.theme
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.Icons
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -15,8 +17,6 @@ import androidx.navigation.NavController
 import cl.duoc.amigo.R
 import cl.duoc.amigo.viewModel.FormularioViewModel
 import kotlinx.coroutines.launch
-import androidx.compose.foundation.background
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -26,9 +26,6 @@ fun LoginScreen(
     onLoginSuccess: () -> Unit,
     onRegisterClick: () -> Unit
 ) {
-    var correo by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
-    val isLoginEnabled = correo.isNotBlank() && password.length >= 4
 
     var showError by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
@@ -40,7 +37,7 @@ fun LoginScreen(
                 navigationIcon = {
                     IconButton(onClick = onRegisterClick) {
                         Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack, // ⬅️ ÍCONO CORREGIDO
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Volver al registro"
                         )
                     }
@@ -59,7 +56,6 @@ fun LoginScreen(
 
                 Spacer(modifier = Modifier.height(32.dp))
 
-                // Logo
                 Image(
                     painter = painterResource(id = R.drawable.kloser_logo),
                     contentDescription = "Logo Kloser",
@@ -73,26 +69,19 @@ fun LoginScreen(
                     modifier = Modifier.padding(bottom = 32.dp)
                 )
 
-                // Correo Electrónico
+                // Campos editables vinculados al ViewModel
                 OutlinedTextField(
-                    value = correo,
-                    onValueChange = {
-                        correo = it
-                        showError = false
-                    },
-                    label = { Text("Correo Electrónico") }, // ⬅️ CAMBIADO A CORREO
+                    value = viewModel.formulario.correo,
+                    onValueChange = { viewModel.formulario = viewModel.formulario.copy(correo = it) },
+                    label = { Text("Correo Electrónico") },
                     modifier = Modifier.fillMaxWidth()
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                //Contraseña
                 OutlinedTextField(
-                    value = password,
-                    onValueChange = {
-                        password = it
-                        showError = false
-                    },
+                    value = viewModel.formulario.contrasena,
+                    onValueChange = { viewModel.formulario = viewModel.formulario.copy(contrasena = it) },
                     label = { Text("Contraseña") },
                     visualTransformation = PasswordVisualTransformation(),
                     modifier = Modifier.fillMaxWidth()
@@ -100,7 +89,6 @@ fun LoginScreen(
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                // Mensaje de Error
                 if (showError) {
                     Text(
                         text = "Credenciales o correo incorrectos.",
@@ -112,16 +100,15 @@ fun LoginScreen(
                 Spacer(modifier = Modifier.height(32.dp))
 
                 Button(
-                    enabled = isLoginEnabled,
+                    enabled = viewModel.formulario.correo.isNotBlank() && viewModel.formulario.contrasena.isNotBlank(),
                     onClick = {
                         showError = false
                         scope.launch {
-                            val success = viewModel.iniciarSesion(correo, password)
-                            if (success) {
-                                onLoginSuccess()
-                            } else {
-                                showError = true
-                            }
+                            val success = viewModel.iniciarSesion(
+                                viewModel.formulario.correo,
+                                viewModel.formulario.contrasena
+                            )
+                            if (success) onLoginSuccess() else showError = true
                         }
                     },
                     modifier = Modifier.fillMaxWidth()
