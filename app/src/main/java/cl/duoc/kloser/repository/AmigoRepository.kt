@@ -29,6 +29,24 @@ class AmigoRepository(
         }
     }
 
+    suspend fun getFriendsFromApi(): List<Amigo> {
+        return try {
+            val networkAmigos = apiService.getFriends()
+            networkAmigos.map { networkAmigo ->
+                Amigo(
+                    id = 0,
+                    id_xano = networkAmigo.idXano,
+                    nombre = networkAmigo.nombre,
+                    autor = "API",
+                    genero = "API"
+                )
+            }
+        } catch (e: Exception) {
+            println("Error getting friends from API: ${e.message}")
+            emptyList()
+        }
+    }
+
 
     suspend fun insert(amigo: Amigo) {
         val networkModel = AmigoNetwork(idXano = 0, nombre = amigo.nombre)

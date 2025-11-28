@@ -11,6 +11,10 @@ interface ApiService {
 
     @GET("/")
     suspend fun getFriendById(@Query("friend_id") idXano: Int): AmigoNetwork
+
+    @GET("/")
+    suspend fun getFriends(): List<AmigoNetwork>
+
     @POST("/")
     suspend fun addFriend(@Body amigo: AmigoNetwork): AmigoNetwork
 
