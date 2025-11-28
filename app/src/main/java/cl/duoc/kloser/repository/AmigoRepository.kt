@@ -7,44 +7,58 @@ import cl.duoc.kloser.data.remote.ApiService
 
 class AmigoRepository(
     private val dao: AmigoDao,
-    private val apiService: ApiService // Inyectamos el servicio de la API
+    private val apiService: ApiService
 ) {
 
-    // Esta función maneja toda la lógica GET (Network -> Cache -> Return)
-    suspend fun getAllAmigos(): List<Amigo> {
+    suspend fun getFriendById(idXano: Int): Amigo? {
+        return try {
+            val networkAmigo = apiService.getFriendById(idXano)
 
-        // 1. Intentamos obtener de la red (API)
-        try {
-            val networkList = apiService.getFriends()
-
-            // 2. Mapeo: Convertimos la lista de la API (AmigoNetwork) a la lista de Room (Amigo)
-            val localFriends = networkList.map { networkAmigo ->
-                Amigo(
-                    id_xano = networkAmigo.idXano, // Guardamos el ID de Xano
-                    nombre = networkAmigo.nombre,
-                    autor = "Sincronizado", // Valores por defecto para Room
-                    genero = "API"
-                )
-            }
-
-            // 3. Sincronizar: Limpiamos la caché antigua e insertamos la nueva
-            dao.deleteAll()
-            dao.insertAll(localFriends)
-
-            // 4. Devolvemos la lista desde Room (o la lista mapeada, si lo prefieres)
-            return localFriends
-
+            // Mapear AmigoNetwork a Amigo (Local)
+            Amigo(
+                id = 0,
+                id_xano = networkAmigo.idXano,
+                nombre = networkAmigo.nombre,
+                autor = "Buscado",
+                genero = "API"
+            )
         } catch (e: Exception) {
-            // 5. Si la red falla (No hay internet, Xano caído, etc.)
-            println("Error de red: ${e.message}. Devolviendo datos locales (caché).")
-            return dao.getAll() // Devolvemos lo que haya en Room
+            println("Error en Repositorio al buscar ID $idXano: ${e.message}")
+            // Si falla la red o el ID no existe (404), devuelve null
+            null
         }
     }
 
-    // Mantenemos estas funciones si son usadas por el ViewModel para la DB local.
-    // Si no las usas, puedes borrarlas.
+
+    suspend fun insert(amigo: Amigo) {
+        val networkModel = AmigoNetwork(idXano = 0, nombre = amigo.nombre)
+
+        try {
+            val newAmigoNetwork = apiService.addFriend(networkModel)
+
+            val amigoConIdXano = Amigo(
+                id = 0,
+                id_xano = newAmigoNetwork.idXano,
+                nombre = newAmigoNetwork.nombre,
+                autor = amigo.autor,
+                genero = amigo.genero
+            )
+
+            dao.insert(amigoConIdXano)
+
+        } catch (e: Exception) {
+            println("Fallo al insertar amigo: ${e.message}")
+            dao.insert(amigo)
+        }
+    }
+
+    suspend fun delete(amigo: Amigo) {
+        try {
+            dao.delete(amigo)
+
+        } catch (e: Exception) {
+            println("Fallo al eliminar amigo con ID Xano ${amigo.id_xano}. Error: ${e.message}")
+        }
+    }
     suspend fun getAll() = dao.getAll()
-    suspend fun insert(amigo: Amigo) = dao.insert(amigo)
-    suspend fun update(amigo: Amigo) = dao.update(amigo)
-    suspend fun delete(amigo: Amigo) = dao.delete(amigo)
 }

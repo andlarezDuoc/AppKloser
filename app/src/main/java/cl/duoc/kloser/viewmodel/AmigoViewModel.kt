@@ -9,51 +9,82 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
 /**
- * ViewModel que maneja el estado de la UI y se comunica con el Repositorio.
- * Recibe el AmigoRepository a través de inyección en el constructor.
+ * ViewModel que maneja el estado de la UI y se comunica con el Repositorio (Room/Retrofit).
  */
 class AmigoViewModel(private val repository: AmigoRepository) : ViewModel() {
 
-    // MutableStateFlow privado para actualizar la lista.
+    // --- ESTADO PARA LA LISTA COMPLETA (USADO POR LazyColumn) ---
     private val _amigos = MutableStateFlow<List<Amigo>>(emptyList())
+    val amigos: StateFlow<List<Amigo>> = _amigos // ⚠️ Variable pública que usa Amigos.kt
 
-    // StateFlow público que la UI (Composable/Activity) observará.
-    val amigos: StateFlow<List<Amigo>> = _amigos
+    // --- ESTADO PARA LA BÚSQUEDA ---
+    private val _searchedFriend = MutableStateFlow<Amigo?>(null)
+    val searchedFriend: StateFlow<Amigo?> = _searchedFriend
 
-    // Cargamos los amigos automáticamente al inicializar el ViewModel
+    private val _isSearching = MutableStateFlow(false)
+    val isSearching: StateFlow<Boolean> = _isSearching
+
+    // --- INICIALIZACIÓN ---
     init {
+        // Carga la lista de amigos de Room/API inmediatamente al inicio
         fetchAmigos()
     }
 
-    // 1. Obtener datos (GET) 📞
+    // --- FUNCIONES DE OPERACIÓN ---
+
+    // 1. OBTENER DATOS (GET & SYNC)
     fun fetchAmigos() {
         viewModelScope.launch {
             try {
-                // Llama al Repositorio, que maneja la lógica de Network (Xano) -> Cache (Room).
-                _amigos.value = repository.getAllAmigos()
+                // Llama al Repositorio, que trae datos de la API y los guarda en Room.
+                _amigos.value = repository.getAll()
             } catch (e: Exception) {
-                // Manejo de errores de red/db. (Mantiene la última lista en caso de error)
-                println("Error de carga de amigos: ${e.message}")
+                println("Error de carga inicial de amigos: ${e.message}")
             }
         }
     }
 
-    // 2. Agregar amigo (POST) ➕
+    // 2. BUSCAR UN AMIGO (GET por ID)
+    fun searchFriend(idString: String) {
+        viewModelScope.launch {
+            if (idString.isBlank()) return@launch
+
+            _isSearching.value = true
+            _searchedFriend.value = null // Limpiar el resultado anterior
+
+            try {
+                val idXano = idString.toIntOrNull()
+
+                if (idXano != null) {
+                    // Llama al repositorio con el ID de Xano
+                    val friend = repository.getFriendById(idXano)
+                    _searchedFriend.value = friend
+                } else {
+                    println("Búsqueda fallida: ID no válido.")
+                }
+            } catch (e: Exception) {
+                println("Error al buscar amigo: ${e.message}")
+                _searchedFriend.value = null
+            } finally {
+                _isSearching.value = false
+            }
+        }
+    }
+
+    // 3. AGREGAR AMIGO (POST)
     fun agregarAmigo(nombre: String) {
         viewModelScope.launch {
             try {
-                // Creamos un objeto temporal. El Repositorio debe encargarse
-                // de enviarlo a Xano y guardarlo en Room.
+                // Creamos un objeto temporal (el ID lo genera Xano)
                 val nuevoAmigo = Amigo(
                     nombre = nombre,
                     autor = "Usuario",
-                    genero = "Amigo"
-                    // id y id_xano se manejan en el Repository
+                    genero = "Manual"
                 )
 
                 repository.insert(nuevoAmigo)
 
-                // Volvemos a cargar la lista para que la UI se actualice con el nuevo amigo.
+                // Recargamos la lista para actualizar la UI
                 fetchAmigos()
             } catch (e: Exception) {
                 println("Error al agregar amigo: ${e.message}")
@@ -61,15 +92,14 @@ class AmigoViewModel(private val repository: AmigoRepository) : ViewModel() {
         }
     }
 
-    // 3. Eliminar amigo (DELETE) 🗑️
+    // 4. ELIMINAR AMIGO (DELETE)
     fun eliminarAmigo(amigo: Amigo) {
         viewModelScope.launch {
             try {
-                // Llama al Repositorio para que elimine de Room (y potencialmente de Xano,
-                // dependiendo de cómo implementes el delete en el Repository).
+                // Llama al Repositorio para eliminar de Room y/o API
                 repository.delete(amigo)
 
-                // Volvemos a cargar la lista para actualizar la UI.
+                // Recargamos la lista para actualizar la UI
                 fetchAmigos()
             } catch (e: Exception) {
                 println("Error al eliminar amigo: ${e.message}")

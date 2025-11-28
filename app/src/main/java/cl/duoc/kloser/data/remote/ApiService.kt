@@ -1,11 +1,17 @@
 package cl.duoc.kloser.data.remote
 
-import cl.duoc.amigo.model.AmigoNetwork // <-- Usamos el modelo de red
+import cl.duoc.amigo.model.AmigoNetwork
 import retrofit2.http.GET
+import retrofit2.http.POST
+import retrofit2.http.Body
+import retrofit2.http.Path
+import retrofit2.http.Query
 
 interface ApiService {
 
-    // Función GET para obtener la lista de amigos
     @GET("/")
-    suspend fun getFriends(): List<AmigoNetwork>
+    suspend fun getFriendById(@Query("friend_id") idXano: Int): AmigoNetwork
+    @POST("/")
+    suspend fun addFriend(@Body amigo: AmigoNetwork): AmigoNetwork
+
 }
