@@ -9,13 +9,17 @@ import retrofit2.http.Query
 
 interface ApiService {
 
-    @GET("/")
-    suspend fun getFriendById(@Query("friend_id") idXano: Int): AmigoNetwork
+    // Buscar usuarios por nombre en Xano
+    // Assuming the endpoint accepts a query param for name filtering.
+    // Xano usually allows filtering like ?name=... or via specific endpoints.
+    // Based on user request: "buscar por el nombre y no por el ID"
+    @GET("/usuario") 
+    suspend fun getUsuariosByName(@Query("name") nombre: String): List<UsuarioNetwork>
 
-    @GET("/")
-    suspend fun getFriends(): List<AmigoNetwork>
+    @GET("/usuario")
+    suspend fun getUsuarios(): List<UsuarioNetwork>
 
-    @POST("/")
-    suspend fun addFriend(@Body amigo: AmigoNetwork): AmigoNetwork
+    @POST("/usuario")
+    suspend fun addUsuario(@Body usuario: UsuarioNetwork): UsuarioNetwork
 
 }

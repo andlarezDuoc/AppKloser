@@ -1,11 +1,11 @@
-package cl.duoc.amigo.ui.theme
+package cl.duoc.kloser.ui.theme
 
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import cl.duoc.amigo.viewModel.AmigoViewModel
-import cl.duoc.amigo.viewModel.FormularioViewModel
+import cl.duoc.kloser.viewmodel.UsuarioViewModel
+import cl.duoc.kloser.viewmodel.FormularioViewModel
 
 
 @OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
@@ -13,7 +13,7 @@ import cl.duoc.amigo.viewModel.FormularioViewModel
 fun AppNavigation(
     navController: NavHostController,
     formularioViewModel: FormularioViewModel,
-    amigoViewModel: AmigoViewModel
+    usuarioViewModel: UsuarioViewModel
 ) {
     NavHost(navController = navController, startDestination = "login") {
 
@@ -23,7 +23,7 @@ fun AppNavigation(
                 navController = navController,
                 viewModel = formularioViewModel,
                 onLoginSuccess = {
-                    navController.navigate("amigos") {
+                    navController.navigate("usuarios") {
                         popUpTo("login") { inclusive = true }
                     }
                 },
@@ -39,15 +39,15 @@ fun AppNavigation(
         composable("formulario") {
             Formulario(
                 viewModel = formularioViewModel,
-                onFormularioEnviado = { navController.navigate("amigos") },
+                onFormularioEnviado = { navController.navigate("usuarios") },
                 onLoginClick = { navController.navigate("login") }
             )
         }
 
-        // Pantalla de Lista de Amigos
-        composable("amigos") {
-            Amigos(
-                viewModel = amigoViewModel,
+        // Pantalla de Lista de Usuarios
+        composable("usuarios") {
+            Usuarios(
+                viewModel = usuarioViewModel,
                 onLogout = {
                     navController.navigate("login") {
                         popUpTo("login") { inclusive = true }

@@ -5,10 +5,9 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 
-@Database(entities = [Amigo::class, AuthEntity::class], version = 3, exportSchema = false)
+@Database(entities = [AuthEntity::class], version = 3, exportSchema = false)
 abstract class AppDatabase : RoomDatabase() {
 
-    abstract fun amigoDao(): AmigoDao
     abstract fun authDao(): AuthDao
 
     companion object {

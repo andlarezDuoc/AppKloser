@@ -9,7 +9,6 @@ import android.os.Environment
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
@@ -17,13 +16,12 @@ import androidx.compose.ui.Modifier
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.navigation.compose.rememberNavController
-import cl.duoc.amigo.ui.theme.*
-import cl.duoc.amigo.viewModel.AmigoViewModel
-import cl.duoc.amigo.viewModel.FormularioViewModel
-import cl.duoc.amigo.model.AppDatabase
-import cl.duoc.amigo.repository.AmigoRepository
+import cl.duoc.kloser.ui.theme.*
+import cl.duoc.kloser.viewmodel.UsuarioViewModel
+import cl.duoc.kloser.viewmodel.FormularioViewModel
+import cl.duoc.kloser.repository.UsuarioRepository
 import cl.duoc.kloser.data.remote.RetrofitInstance
-import cl.duoc.amigo.viewModel.AmigoViewModelFactory
+import cl.duoc.kloser.viewmodel.UsuarioViewModelFactory
 import java.io.File
 import java.io.IOException
 import java.text.SimpleDateFormat
@@ -33,20 +31,18 @@ class MainActivity : ComponentActivity() {
 
     private lateinit var currentPhotoPath: String
 
-    private val amigoDao by lazy {
-        AppDatabase.getDatabase(this).amigoDao()
-    }
-
+    // Removed AmigoDao as we use Xano now
+    
     private val apiService by lazy {
         RetrofitInstance.api
     }
 
-    private val amigoRepository by lazy {
-        AmigoRepository(amigoDao, apiService)
+    private val usuarioRepository by lazy {
+        UsuarioRepository(apiService)
     }
 
-    private val amigoViewModel: AmigoViewModel by viewModels {
-        AmigoViewModelFactory(amigoRepository)
+    private val usuarioViewModel: UsuarioViewModel by viewModels {
+        UsuarioViewModelFactory(usuarioRepository)
     }
 
     private val takePictureLauncher =
@@ -82,7 +78,7 @@ class MainActivity : ComponentActivity() {
                     AppNavigation(
                         navController = navController,
                         formularioViewModel = formularioViewModel,
-                        amigoViewModel = amigoViewModel
+                        usuarioViewModel = usuarioViewModel
                     )
                 }
             }

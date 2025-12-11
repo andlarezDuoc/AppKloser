@@ -1,17 +1,17 @@
-package cl.duoc.amigo.viewModel
+package cl.duoc.kloser.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import cl.duoc.amigo.repository.AmigoRepository
+import cl.duoc.kloser.repository.UsuarioRepository
 
-class AmigoViewModelFactory(
-    private val repository: AmigoRepository
+class UsuarioViewModelFactory(
+    private val repository: UsuarioRepository
 ) : ViewModelProvider.Factory {
 
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(AmigoViewModel::class.java)) {
+        if (modelClass.isAssignableFrom(UsuarioViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return AmigoViewModel(repository) as T
+            return UsuarioViewModel(repository) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

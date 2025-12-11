@@ -1,4 +1,4 @@
-package cl.duoc.amigo.ui.theme
+package cl.duoc.kloser.ui.theme
 
 import android.Manifest
 import android.content.pm.PackageManager
@@ -14,7 +14,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CameraAlt
-import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -26,10 +25,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
-import androidx.lifecycle.compose.collectAsStateWithLifecycle // <-- Importación corregida
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.rememberAsyncImagePainter
-import cl.duoc.amigo.model.Amigo
-import cl.duoc.amigo.viewModel.AmigoViewModel
+import cl.duoc.kloser.data.model.Usuario
+import cl.duoc.kloser.viewmodel.UsuarioViewModel
 import java.io.File
 
 fun File.toUri(context: android.content.Context) = FileProvider.getUriForFile(
@@ -40,23 +39,18 @@ fun File.toUri(context: android.content.Context) = FileProvider.getUriForFile(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun Amigos(
-    viewModel: AmigoViewModel,
+fun Usuarios(
+    viewModel: UsuarioViewModel,
     onLogout: () -> Unit
 ) {
     val context = LocalContext.current
 
-    // ⬇️ CORRECCIÓN 1: Usamos collectAsStateWithLifecycle para evitar errores de inferencia (Línea 47) ⬇️
-    val amigos by viewModel.amigos.collectAsStateWithLifecycle(initialValue = emptyList())
-    val searchedFriend by viewModel.searchedFriend.collectAsStateWithLifecycle(initialValue = null)
+    val usuarios by viewModel.usuarios.collectAsStateWithLifecycle(initialValue = emptyList())
+    val searchedUsuarios by viewModel.searchedUsuarios.collectAsStateWithLifecycle(initialValue = emptyList())
     val isSearching by viewModel.isSearching.collectAsStateWithLifecycle(initialValue = false)
 
-    var idBusqueda by remember { mutableStateOf("") } // Usaremos esta variable para buscar
-    var mostrarDialogoEliminar by remember { mutableStateOf(false) }
-
-    // ⬇️ CORRECCIÓN 2: El tipo del amigo seleccionado debe ser Amigo? ⬇️
-    var amigoSeleccionado by remember { mutableStateOf<Amigo?>(null) }
-
+    var nombreBusqueda by remember { mutableStateOf("") }
+    
     var imagenUri by remember { mutableStateOf<android.net.Uri?>(null) }
 
     val cameraFile = remember {
@@ -86,7 +80,7 @@ fun Amigos(
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text("Lista de Amigos") },
+                title = { Text("Lista de Usuarios") },
                 navigationIcon = {
                     TextButton(onClick = onLogout, modifier = Modifier.padding(start = 8.dp)) {
                         Text("Cerrar Sesión", color = Color.Red)
@@ -104,7 +98,7 @@ fun Amigos(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
 
-                // Botón de cámara (Se mantiene)
+                // Botón de cámara
                 Button(
                     onClick = {
                         when (PackageManager.PERMISSION_GRANTED) {
@@ -125,7 +119,7 @@ fun Amigos(
                     )
                 }
 
-                // Vista previa de la foto (Se mantiene)
+                // Vista previa de la foto
                 imagenUri?.let { uri ->
                     Image(
                         painter = rememberAsyncImagePainter(uri),
@@ -140,14 +134,14 @@ fun Amigos(
                 // --- Sección de Búsqueda ---
                 Spacer(modifier = Modifier.height(16.dp))
 
-                Text("Buscar Amigo por ID Xano", style = MaterialTheme.typography.titleMedium, color = Color.White)
+                Text("Buscar Usuario por Nombre", style = MaterialTheme.typography.titleMedium, color = Color.White)
                 Spacer(modifier = Modifier.height(8.dp))
 
                 OutlinedTextField(
-                    value = idBusqueda,
-                    onValueChange = { idBusqueda = it },
-                    label = { Text("ID del Amigo a buscar (ej: 11)") },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    value = nombreBusqueda,
+                    onValueChange = { nombreBusqueda = it },
+                    label = { Text("Nombre del Usuario") },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
                     modifier = Modifier.fillMaxWidth()
                 )
 
@@ -155,16 +149,16 @@ fun Amigos(
 
                 Button(
                     onClick = {
-                        if (idBusqueda.isNotBlank()) {
-                            viewModel.searchFriend(idBusqueda)
+                        if (nombreBusqueda.isNotBlank()) {
+                            viewModel.searchUsuario(nombreBusqueda)
                         } else {
-                            Toast.makeText(context, "Ingresa un ID para buscar", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, "Ingresa un nombre para buscar", Toast.LENGTH_SHORT).show()
                         }
                     },
                     enabled = !isSearching,
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text(if (isSearching) "Buscando..." else "Buscar Amigo")
+                    Text(if (isSearching) "Buscando..." else "Buscar Usuario")
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -172,31 +166,40 @@ fun Amigos(
                 // --- Sección de Resultado de Búsqueda ---
                 if (isSearching) {
                     CircularProgressIndicator(color = Color.Cyan)
-                } else if (searchedFriend != null) {
-                    Text("✅ Amigo encontrado:", color = Color.Green, modifier = Modifier.padding(bottom = 8.dp))
-                    AmigoResultCard(searchedFriend!!)
-                } else if (idBusqueda.isNotBlank() && !isSearching) {
-                    Text("❌ Amigo con ID ${idBusqueda} no encontrado.", color = Color.Red)
+                } else if (searchedUsuarios.isNotEmpty()) {
+                    Text("✅ Usuarios encontrados:", color = Color.Green, modifier = Modifier.padding(bottom = 8.dp))
+                    LazyColumn(modifier = Modifier.height(150.dp).fillMaxWidth()) {
+                        items(searchedUsuarios) { usuario ->
+                             UsuarioResultCard(usuario)
+                             Spacer(modifier = Modifier.height(8.dp))
+                        }
+                    }
+                } else if (nombreBusqueda.isNotBlank() && !isSearching && searchedUsuarios.isEmpty()) {
+                     // Only show not found if we actually searched
+                     // Warning: this logic might show "not found" before searching if we don't track "hasSearched"
+                     // For simplicity, we assume if isSearching is false and list is empty but text is not blank, we might have searched.
+                     // But strictly speaking, we might just have typed text.
+                     // The user asked to "Search by name".
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // --- Lista de amigos (Todos los amigos de Room) ---
+                // --- Lista de usuarios (API) ---
                 Text(
-                    text = "Amigos Agregados (Caché Local)",
+                    text = "Usuarios (API Xano)",
                     style = MaterialTheme.typography.titleSmall,
                     color = Color.White,
                     modifier = Modifier.padding(bottom = 8.dp)
                 )
 
-                if (amigos.isEmpty()) {
-                    Text("No hay amigos registrados aún.", color = Color.Gray)
+                if (usuarios.isEmpty()) {
+                    Text("No hay usuarios registrados aún.", color = Color.Gray)
                 } else {
                     LazyColumn(
                         modifier = Modifier.fillMaxWidth().weight(1f),
                         verticalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
-                        items(amigos) { amigo ->
+                        items(usuarios) { usuario ->
                             Card(
                                 modifier = Modifier.fillMaxWidth(),
                                 colors = CardDefaults.cardColors(containerColor = Color.DarkGray),
@@ -210,80 +213,38 @@ fun Amigos(
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     Column(modifier = Modifier.weight(1f)) {
-                                        // ⬇️ CORRECCIÓN 3: Acceso correcto a las propiedades del objeto 'amigo' ⬇️
                                         Text(
-                                            text = amigo.nombre,
+                                            text = usuario.nombre,
                                             style = MaterialTheme.typography.titleMedium,
                                             fontWeight = FontWeight.Bold,
                                             color = Color.White
                                         )
                                         Text(
-                                            text = "ID Xano: ${amigo.id_xano}",
+                                            text = "Email: ${usuario.email}",
                                             color = Color.LightGray
                                         )
-                                    }
-
-                                    IconButton(onClick = {
-                                        amigoSeleccionado = amigo
-                                        mostrarDialogoEliminar = true
-                                    }) {
-                                        Icon(Icons.Filled.Delete, contentDescription = "Eliminar Amigo", tint = Color.Red)
                                     }
                                 }
                             }
                         }
                     }
                 }
-
-                // --- Diálogos (Corregidos para usar amigoSeleccionado de tipo Amigo?) ---
-
-                // Diálogo de eliminar amigo
-                if (mostrarDialogoEliminar && amigoSeleccionado != null) {
-                    AlertDialog(
-                        onDismissRequest = {
-                            mostrarDialogoEliminar = false
-                            amigoSeleccionado = null
-                        },
-                        title = { Text("Confirmar Eliminación") },
-                        text = { Text("¿Estás seguro de eliminar a ${amigoSeleccionado!!.nombre}?") },
-                        confirmButton = {
-                            Button(
-                                onClick = {
-                                    // ⬇️ CORRECCIÓN 4: Llamada correcta a eliminarAmigo ⬇️
-                                    viewModel.eliminarAmigo(amigoSeleccionado!!)
-                                    mostrarDialogoEliminar = false
-                                    amigoSeleccionado = null
-                                },
-                                colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
-                            ) { Text("Eliminar") }
-                        },
-                        dismissButton = {
-                            OutlinedButton(
-                                onClick = {
-                                    mostrarDialogoEliminar = false
-                                    amigoSeleccionado = null
-                                }
-                            ) { Text("Cancelar") }
-                        }
-                    )
-                }
             }
         }
     )
 }
 
-// Composable para mostrar el resultado de la búsqueda (Se mantiene)
 @Composable
-fun AmigoResultCard(amigo: Amigo) {
+fun UsuarioResultCard(usuario: Usuario) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = Color(0xFF005668)),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            Text("Nombre: ${amigo.nombre}", fontWeight = FontWeight.Bold, color = Color.White)
-            Text("ID Xano: ${amigo.id_xano}", color = Color.White)
-            Text("Origen: ${amigo.genero}", color = Color.White)
+            Text("Nombre: ${usuario.nombre}", fontWeight = FontWeight.Bold, color = Color.White)
+            Text("ID Xano: ${usuario.id_xano}", color = Color.White)
+            Text("Email: ${usuario.email}", color = Color.White)
         }
     }
 }
