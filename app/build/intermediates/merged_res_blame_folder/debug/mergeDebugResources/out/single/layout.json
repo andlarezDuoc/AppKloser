@@ -1,0 +1,22 @@
+[
+    {
+        "merged": "com.example.appcontact.app-mergeDebugResources-3:/layout/item_contact.xml",
+        "source": "com.example.appcontact.app-main-6:/layout/item_contact.xml"
+    },
+    {
+        "merged": "com.example.appcontact.app-mergeDebugResources-3:/layout/activity_main.xml",
+        "source": "com.example.appcontact.app-main-6:/layout/activity_main.xml"
+    },
+    {
+        "merged": "com.example.appcontact.app-mergeDebugResources-3:/layout/dialog_add_user.xml",
+        "source": "com.example.appcontact.app-main-6:/layout/dialog_add_user.xml"
+    },
+    {
+        "merged": "com.example.appcontact.app-mergeDebugResources-3:/layout/activity_login.xml",
+        "source": "com.example.appcontact.app-main-6:/layout/activity_login.xml"
+    },
+    {
+        "merged": "com.example.appcontact.app-mergeDebugResources-3:/layout/activity_register.xml",
+        "source": "com.example.appcontact.app-main-6:/layout/activity_register.xml"
+    }
+]

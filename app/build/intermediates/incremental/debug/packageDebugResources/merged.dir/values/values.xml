@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="background_dark">#121212</color>
+    <color name="black">#FF000000</color>
+    <color name="purple_200">#FFBB86FC</color>
+    <color name="purple_500">#FF6200EE</color>
+    <color name="purple_700">#FF3700B3</color>
+    <color name="surface_dark">#1E1E1E</color>
+    <color name="teal_200">#FF03DAC5</color>
+    <color name="teal_700">#FF018786</color>
+    <color name="text_primary">#FFFFFF</color>
+    <color name="text_secondary">#B3B3B3</color>
+    <color name="white">#FFFFFFFF</color>
+    <string name="app_name">AppKloser</string>
+    <string name="btn_add">Agregar</string>
+    <string name="btn_delete">Eliminar</string>
+    <string name="btn_history">Historial</string>
+    <string name="btn_login">Iniciar Sesión</string>
+    <string name="btn_logout">Cerrar Sesión</string>
+    <string name="btn_register">Registrarse</string>
+    <string name="camera_desc">Tomar Foto</string>
+    <string name="email_hint">Correo</string>
+    <string name="login_title">Inicio de Sesión</string>
+    <string name="name_hint">Nombre</string>
+    <string name="no_account">¿No tienes cuenta? Regístrate</string>
+    <string name="password_hint">Clave</string>
+    <string name="register_title">Registro</string>
+    <style name="Theme.AppContact" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+
+        <item name="colorPrimary">@color/purple_200</item>
+        <item name="colorPrimaryVariant">@color/purple_700</item>
+        <item name="colorOnPrimary">@color/black</item>
+
+        <item name="colorSecondary">@color/teal_200</item>
+        <item name="colorSecondaryVariant">@color/teal_200</item>
+        <item name="colorOnSecondary">@color/black</item>
+
+        <item name="android:statusBarColor">@color/background_dark</item>
+
+        <item name="android:windowBackground">@color/background_dark</item>
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:textColorHint">@color/text_secondary</item>
+    </style>
+</resources>
