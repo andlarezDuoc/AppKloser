@@ -2,6 +2,9 @@
 <project version="4">
   <component name="VcsDirectoryMappings">
     <mapping directory="$PROJECT_DIR$" vcs="Git" />
+<<<<<<< HEAD
     <mapping directory="$USER_HOME$/Downloads/App_Kloser_AA" vcs="Git" />
+=======
+>>>>>>> aedf27021df0de2f57310d5e882444fcd4817bc3
   </component>
 </project>

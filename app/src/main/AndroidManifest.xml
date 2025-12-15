@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
@@ -23,6 +24,36 @@
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="com.example.appcontact.fileprovider"
+=======
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="cl.duoc.amigo">
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+
+
+    <application
+        android:allowBackup="true"
+        android:icon="@drawable/kloser_logo"
+        android:label="@string/app_name"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.Amigo">
+
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:theme="@style/Theme.Amigo">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+        </activity>
+
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.provider"
+>>>>>>> aedf27021df0de2f57310d5e882444fcd4817bc3
             android:exported="false"
             android:grantUriPermissions="true">
             <meta-data
@@ -30,6 +61,7 @@
                 android:resource="@xml/file_paths" />
         </provider>
 
+<<<<<<< HEAD
         <activity
             android:name=".LoginActivity"
             android:exported="true">
@@ -44,4 +76,7 @@
         
     </application>
 
+=======
+    </application>
+>>>>>>> aedf27021df0de2f57310d5e882444fcd4817bc3
 </manifest>

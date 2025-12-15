@@ -1,4 +1,5 @@
 <resources>
+<<<<<<< HEAD
     <string name="app_name">AppKloser</string>
     <string name="login_title">Inicio de Sesión</string>
     <string name="register_title">Registro</string>
@@ -14,3 +15,7 @@
     <string name="btn_add">Agregar</string>
     <string name="btn_delete">Eliminar</string>
 </resources>
+=======
+    <string name="app_name">Kloser</string>
+</resources>
+>>>>>>> aedf27021df0de2f57310d5e882444fcd4817bc3
