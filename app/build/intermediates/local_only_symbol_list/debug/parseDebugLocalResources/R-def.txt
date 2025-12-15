@@ -11,7 +11,9 @@ color teal_700
 color text_primary
 color text_secondary
 color white
+drawable ic_launcher_background
 drawable ic_launcher_foreground
+drawable kloser_logo
 drawable logo_app
 id btnAdd
 id btnAddUser
@@ -44,6 +46,8 @@ layout activity_main
 layout activity_register
 layout dialog_add_user
 layout item_contact
+mipmap ic_launcher
+mipmap ic_launcher_round
 string app_name
 string btn_add
 string btn_delete
