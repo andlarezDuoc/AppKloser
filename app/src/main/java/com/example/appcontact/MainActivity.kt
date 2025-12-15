@@ -12,6 +12,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.appcontact.models.User
+import com.example.appcontact.utils.EmailValidator
 import com.example.appcontact.viewmodels.MainViewModel
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import java.io.File
@@ -139,7 +140,7 @@ class MainActivity : AppCompatActivity() {
             val name = etName.text.toString()
             val email = etEmail.text.toString()
             if (name.isNotEmpty() && email.isNotEmpty()) {
-                if (isValidEmail(email)) {
+                if (EmailValidator.isValid(email)) {
                     viewModel.addUser(name, email)
                     dialog.dismiss()
                 } else {
@@ -234,9 +235,6 @@ class MainActivity : AppCompatActivity() {
         builder.show()
     }
 
-    private fun isValidEmail(email: String): Boolean {
-        return android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()
-    }
 
     private fun logout() {
         getSharedPreferences("UserPrefs", MODE_PRIVATE).edit().clear().apply()

@@ -51,4 +51,12 @@ dependencies {
 
     implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.2'
     implementation 'androidx.lifecycle:lifecycle-livedata-ktx:2.6.2'
+    implementation "org.jetbrains.kotlin:kotlin-test:1.9.0"
+    implementation libs.androidx.monitor
+    implementation libs.androidx.junit.ktx
+    testImplementation 'junit:junit:4.13.2'
+    testImplementation 'org.mockito:mockito-core:5.7.0'
+    testImplementation 'org.mockito:mockito-inline:5.2.0'
+    testImplementation 'org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3'
+    testImplementation 'androidx.arch.core:core-testing:2.2.0'
 }

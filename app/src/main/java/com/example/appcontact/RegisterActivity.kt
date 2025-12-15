@@ -1,7 +1,6 @@
 package com.example.appcontact
 
 import android.content.Context
-import android.content.Intent
 import android.os.Bundle
 import android.widget.Button
 import android.widget.EditText
@@ -26,7 +25,7 @@ class RegisterActivity : AppCompatActivity() {
 
             if (name.isEmpty() || email.isEmpty() || password.isEmpty()) {
                 Toast.makeText(this, "Por favor complete todos los campos", Toast.LENGTH_SHORT).show()
-            } else if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+            } else if (!com.example.appcontact.utils.EmailValidator.isValid(email)) {
                 Toast.makeText(this, "Email no válido", Toast.LENGTH_SHORT).show()
             } else {
                 val sharedPref = getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)

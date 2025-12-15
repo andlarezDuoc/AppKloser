@@ -8,8 +8,7 @@ import com.example.appcontact.models.User
 import com.example.appcontact.repositories.UserRepository
 import kotlinx.coroutines.launch
 
-class MainViewModel : ViewModel() {
-    private val repository = UserRepository()
+class MainViewModel(private val repository: UserRepository = UserRepository()) : ViewModel() {
 
     private val _users = MutableLiveData<List<User>>()
     val users: LiveData<List<User>> = _users
